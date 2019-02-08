@@ -26,23 +26,25 @@ namespace MiningLauncher
         {
             try
             {
-                AddEvent("Starting miner process...");
-                txtArguments.Text = BuildTrexCommand();
-                Application.DoEvents();
-                string[] colParams = new[] { txtMinerExePath.Text, BuildTrexCommand() };
-                if (backgroundWorker1.IsBusy)
+
+                if (!backgroundWorker1.IsBusy)
                 {
-                    backgroundWorker1.Abort();
-                    backgroundWorker1.Dispose();
-                    backgroundWorker1 = new AbortableBackgroundWorker();
+                    AddEvent("Starting miner process...");
+                    txtArguments.Text = BuildTrexCommand();
+                    Application.DoEvents();
+                    string[] colParams = new[] { txtMinerExePath.Text, BuildTrexCommand() };
+                    backgroundWorker1.RunWorkerAsync(colParams);
                 }
-                backgroundWorker1.RunWorkerAsync(colParams);
+                else 
+                {
+                    AddEvent("Miner already running! Stop it first.");
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 AddEvent(ex.Message);
                 AddEvent(ex.StackTrace.ToString());
-            }           
+            }
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -55,7 +57,6 @@ namespace MiningLauncher
                 if (backgroundWorker1.IsBusy)
                 {
                     backgroundWorker1.Abort();
-                    backgroundWorker1.Dispose();
                 }
             }
             catch (Exception ex)
@@ -63,18 +64,10 @@ namespace MiningLauncher
                 AddEvent(ex.Message);
                 AddEvent(ex.StackTrace.ToString());
             }
-            try
-            {
-                backgroundWorker1 = new AbortableBackgroundWorker();
-            }
-            catch
-            {
-
-            }
         }
 
         private int LaunchMiner(string minerPath, string cmdArguments)
-        {       
+        {
             // Use ProcessStartInfo class.
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = false;
@@ -181,35 +174,40 @@ namespace MiningLauncher
         private string BuildTrexCommand()
         {
             var oSzCmd = new StringBuilder();
-            oSzCmd.AppendFormat("-a {0} -o {1} -u {2}",
-                                ctrMainPoolAlgo.Text, ctrMainPoolUrl.Text, ctrMainPoolWorkerUsername.Text);
-
+            if (!string.IsNullOrWhiteSpace(ctrMainPoolAlgo.Text))
+            {
+                oSzCmd.AppendFormat(" -a {0}", ctrMainPoolAlgo.Text);
+            }
             if (!string.IsNullOrWhiteSpace(ctrDevices.Text))
             {
                 oSzCmd.AppendFormat(" -d {0}", ctrDevices.Text);
             }
-
-            if (!string.IsNullOrWhiteSpace(ctrMainPoolWorkerPassword.Text))
-            {
-                oSzCmd.AppendFormat(" -p {0}", ctrMainPoolWorkerPassword.Text);
-            }
-
             if (!string.IsNullOrWhiteSpace(ctrIntensity.Text))
             {
                 oSzCmd.AppendFormat(" -i {0}", ctrIntensity.Text);
             }
-
+            if (!string.IsNullOrWhiteSpace(ctrMainPoolUrl.Text))
+            {
+                oSzCmd.AppendFormat(" -o {0}", ctrMainPoolUrl.Text);
+            }
+            if (!string.IsNullOrWhiteSpace(ctrMainPoolWorkerUsername.Text))
+            {
+                oSzCmd.AppendFormat(" -u {0}", ctrMainPoolWorkerUsername.Text);
+            }
+            if (!string.IsNullOrWhiteSpace(ctrMainPoolWorkerPassword.Text))
+            {
+                oSzCmd.AppendFormat(" -p {0}", ctrMainPoolWorkerPassword.Text);
+            }
             if (!string.IsNullOrWhiteSpace(ctrRetries.Text))
             {
                 oSzCmd.AppendFormat(" -r {0}", ctrRetries.Text);
             }
-
             if (!string.IsNullOrWhiteSpace(ctrRetryPause.Text))
             {
                 oSzCmd.AppendFormat(" -R {0}", ctrRetryPause.Text);
             }
 
-            if(!string.IsNullOrWhiteSpace(ctrTimeout.Text) ||
+            if (!string.IsNullOrWhiteSpace(ctrTimeout.Text) ||
                !string.IsNullOrWhiteSpace(ctrTimeLimit.Text) ||
                !string.IsNullOrWhiteSpace(ctrTempColor.Text) ||
                !string.IsNullOrWhiteSpace(ctrMaxTemp.Text) ||
@@ -223,11 +221,47 @@ namespace MiningLauncher
                 colParams.Add(!string.IsNullOrWhiteSpace(ctrRestartTemp.Text) ? ctrRestartTemp.Text : "0");
 
                 oSzCmd.AppendFormat(" -T {0}", @"""" + string.Join(" ", colParams) + @"""");
-            }           
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -b {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -J {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -N {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -q {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -B {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -P {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -c {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.AppendFormat(" -l {0}", "");
+            }
+            if (!string.IsNullOrWhiteSpace(""))
+            {
+                oSzCmd.Append(" -h");
+            }
 
-            return oSzCmd.ToString();
+            return oSzCmd.ToString().Trim();
         }
-        
+
         private string BuildCCMinerCommand()
         {
             var oSzCmd = new StringBuilder();
@@ -257,6 +291,21 @@ namespace MiningLauncher
         }
 
         private void ctrMainPoolAlgo_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnGetCommand_Click(object sender, EventArgs e)
+        {
+            txtArguments.Text = BuildTrexCommand();
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox8_Enter(object sender, EventArgs e)
         {
 
         }
